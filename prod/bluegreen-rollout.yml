@@ -6,7 +6,7 @@ metadata:
     app: bluegreen-demo
 spec:
   replicas: 2
-  revisionHistoryLimit: 1
+  revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: bluegreen-demo
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: bluegreen-demo
-          image: argoproj/rollouts-demo:blue
+          image: argoproj/rollouts-demo:green
           imagePullPolicy: Always
           ports:
             - name: http
