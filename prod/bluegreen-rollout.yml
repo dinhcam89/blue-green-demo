@@ -6,7 +6,7 @@ metadata:
     app: bluegreen-demo
 spec:
   replicas: 2
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: bluegreen-demo
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: bluegreen-demo
-          image: argoproj/rollouts-demo:green
+          image: argoproj/rollouts-demo:blue
           imagePullPolicy: Always
           ports:
             - name: http
@@ -28,3 +28,22 @@ spec:
       autoPromotionEnabled: false
       activeService: bluegreen-demo
       previewService: bluegreen-demo-preview
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: rollback-window-check
+spec:
+  args:
+    - name: rollback-timeout
+      value: "3600" # Default is 1 hour (3600 seconds)
+  metrics:
+    - name: health-check
+      interval: 10s # Perform the health check every 10 seconds
+      count: 360 # Run the check for an hour (10s * 360 = 3600s)
+      failureLimit: 1 # Trigger rollback on the first failure
+      successCondition: result >= 95 # Metric is successful if >= 95%
+      provider:
+        prometheus:
+          address: http://prometheus-service:9090
+          query: sum(rate(http_requests_total{status=~"2.."}[1m])) / sum(rate(http_requests_total[1m])) * 100
